@@ -2,7 +2,7 @@ const axios = require('axios');
 const express = require('express');
 const app = express();
 
-const PORT = process.env.PORT || 3000; // ใช้พอร์ตที่ Railway กำหนด
+const port = process.env.PORT || 3000;
 
 let weatherData = null;
 let lastUpdate = 0; // เวลาที่อัปเดตล่าสุด (timestamp)
