@@ -1,7 +1,8 @@
 const axios = require('axios');
 const express = require('express');
 const app = express();
-const port = 3000;
+
+const PORT = process.env.PORT || 3000; // ใช้พอร์ตที่ Railway กำหนด
 
 let weatherData = null;
 let lastUpdate = 0; // เวลาที่อัปเดตล่าสุด (timestamp)
@@ -24,11 +25,21 @@ async function fetchWeather() {
     }
 }
 
-// ดึงข้อมูลใหม่ทุก 1 ชั่วโมง (โดยไม่ต้องรอการเรียก API)
+// ดึงข้อมูลใหม่ทุก 1 ชั่วโมง
 setInterval(fetchWeather, 60 * 60 * 1000);
 fetchWeather(); // ดึงข้อมูลทันทีเมื่อเริ่มต้นเซิร์ฟเวอร์
 
-// API ให้ข้อมูลพยากรณ์ล่าสุด (ดึงใหม่ถ้าหมดอายุ)
+// 🔹 เพิ่ม Route `/`
+app.get('/', (req, res) => {
+    res.send('🌤️ API พยากรณ์อากาศพร้อมใช้งาน! ใช้ /weather หรือ /status');
+});
+
+// 🔹 เพิ่ม Route `/status`
+app.get('/status', (req, res) => {
+    res.json({ status: "API is running!", lastUpdate: new Date(lastUpdate).toLocaleString() });
+});
+
+// API ให้ข้อมูลพยากรณ์ล่าสุด
 app.get('/weather', async (req, res) => {
     if (!weatherData || isDataExpired()) {
         await fetchWeather(); // ดึงข้อมูลใหม่
@@ -40,6 +51,7 @@ app.get('/weather', async (req, res) => {
     });
 });
 
-app.listen(port, () => {
-    console.log(`🌎 Server is running on http://localhost:${port}`);
+// เริ่มเซิร์ฟเวอร์
+app.listen(PORT, () => {
+    console.log(`🌎 Server is running on port ${PORT}`);
 });
