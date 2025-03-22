@@ -2,7 +2,7 @@ const axios = require('axios');
 const express = require('express');
 const app = express();
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3000; // ใช้ค่า PORT จาก Environment ถ้าไม่มีให้ใช้ 3000
 
 let weatherData = null;
 let lastUpdate = 0; // เวลาที่อัปเดตล่าสุด (timestamp)
@@ -52,6 +52,6 @@ app.get('/weather', async (req, res) => {
 });
 
 // เริ่มเซิร์ฟเวอร์
-app.listen(PORT, () => {
-    console.log(`🌎 Server is running on port ${PORT}`);
+app.listen(port, () => {
+    console.log(`🌎 Server is running on http://localhost:${port}`);
 });
