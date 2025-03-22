@@ -17,6 +17,7 @@ function isDataExpired() {
 async function fetchWeather() {
     try {
         const response = await axios.get('https://data.tmd.go.th/api/weather/forecast7days?province=เชียงใหม่');
+        console.log("🔍 Data received:", response.data); // เช็กว่าข้อมูลที่ได้มาคืออะไร
         weatherData = response.data;
         lastUpdate = Date.now();
         console.log("✅ ดึงข้อมูลใหม่สำเร็จ:", new Date(lastUpdate).toLocaleString());
@@ -24,6 +25,7 @@ async function fetchWeather() {
         console.error("❌ ดึงข้อมูลพยากรณ์ล้มเหลว:", error);
     }
 }
+
 
 // ดึงข้อมูลใหม่ทุก 1 ชั่วโมง
 setInterval(fetchWeather, 60 * 60 * 1000);
@@ -54,4 +56,7 @@ app.get('/weather', async (req, res) => {
 // เริ่มเซิร์ฟเวอร์
 app.listen(port, () => {
     console.log(`🌎 Server is running on http://localhost:${port}`);
+}).on("error", (err) => {
+    console.error("❌ Server error:", err);
 });
+
