@@ -26,9 +26,13 @@ async function fetchWeather() {
     }
 }
 
-
 // ดึงข้อมูลใหม่ทุก 1 ชั่วโมง
-setInterval(fetchWeather, 60 * 60 * 1000);
+setInterval(() => {
+    axios.get('http://localhost:' + port + '/status')
+        .then(() => console.log("✅ Keeping server alive"))
+        .catch(err => console.error("❌ Keep-alive error:", err));
+}, 5 * 60 * 1000); // ทุก 5 นาที
+
 fetchWeather(); // ดึงข้อมูลทันทีเมื่อเริ่มต้นเซิร์ฟเวอร์
 
 // 🔹 เพิ่ม Route `/`
