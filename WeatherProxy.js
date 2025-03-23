@@ -23,8 +23,12 @@ async function fetchWeather() {
             headers: { "Accept": "application/json" }
         });
 
+        console.log("🔍 Headers:", response.headers);
+        console.log("🔍 Data Type:", typeof response.data);
+        console.log("🔍 Response Preview:", response.data);
+
         if (typeof response.data !== "object") {
-            throw new Error("API Response is not JSON");
+            throw new Error("API Response is not JSON. Possible HTML response.");
         }
 
         weatherData = response.data;
