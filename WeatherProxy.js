@@ -1,54 +1,59 @@
 const axios = require('axios');
 const express = require('express');
+const cors = require('cors'); // ✅ เพิ่ม CORS
 const app = express();
 
-const port = process.env.PORT || 3000; // ใช้ค่า PORT จาก Environment ถ้าไม่มีให้ใช้ 3000
+const port = process.env.PORT || 3000; // ✅ ใช้ค่า PORT จาก Railway
 
 let weatherData = null;
 let lastUpdate = 0; // เวลาที่อัปเดตล่าสุด (timestamp)
 
+app.use(cors()); // ✅ เปิดให้ API ถูกเรียกจาก Roblox ได้
+
 // ฟังก์ชันเช็กอายุข้อมูล
 function isDataExpired() {
     const now = Date.now();
-    return (now - lastUpdate) > 60 * 60 * 1000; // ถ้าเกิน 1 ชั่วโมงให้ดึงใหม่
+    return (now - lastUpdate) > 60 * 60 * 1000; // ✅ ถ้าเกิน 1 ชั่วโมงให้ดึงใหม่
 }
 
 // ฟังก์ชันดึงข้อมูลใหม่
 async function fetchWeather() {
     try {
-        const response = await axios.get('https://data.tmd.go.th/api/weather/forecast7days?province=เชียงใหม่');
-        console.log("🔍 Data received:", response.data); // เช็กว่าข้อมูลที่ได้มาคืออะไร
+        const response = await axios.get('https://data.tmd.go.th/api/weather/forecast7days?province=เชียงใหม่', {
+            headers: { "Accept": "application/json" }
+        });
+
+        if (typeof response.data !== "object") {
+            throw new Error("API Response is not JSON");
+        }
+
         weatherData = response.data;
         lastUpdate = Date.now();
         console.log("✅ ดึงข้อมูลใหม่สำเร็จ:", new Date(lastUpdate).toLocaleString());
     } catch (error) {
-        console.error("❌ ดึงข้อมูลพยากรณ์ล้มเหลว:", error);
+        console.error("❌ ดึงข้อมูลพยากรณ์ล้มเหลว:", error.message);
     }
 }
 
-// ดึงข้อมูลใหม่ทุก 1 ชั่วโมง
-setInterval(() => {
-    axios.get('http://localhost:' + port + '/status')
-        .then(() => console.log("✅ Keeping server alive"))
-        .catch(err => console.error("❌ Keep-alive error:", err));
-}, 5 * 60 * 1000); // ทุก 5 นาที
+// 🔹 ดึงข้อมูลใหม่ทุก 1 ชั่วโมง
+setInterval(fetchWeather, 60 * 60 * 1000);
 
-fetchWeather(); // ดึงข้อมูลทันทีเมื่อเริ่มต้นเซิร์ฟเวอร์
+fetchWeather(); // ✅ ดึงข้อมูลทันทีเมื่อเซิร์ฟเวอร์เริ่มทำงาน
 
-// 🔹 เพิ่ม Route `/`
+// 🔹 Route `/`
 app.get('/', (req, res) => {
     res.send('🌤️ API พยากรณ์อากาศพร้อมใช้งาน! ใช้ /weather หรือ /status');
 });
 
-// 🔹 เพิ่ม Route `/status`
+// 🔹 Route `/status`
 app.get('/status', (req, res) => {
     res.json({ status: "API is running!", lastUpdate: new Date(lastUpdate).toLocaleString() });
 });
 
-// API ให้ข้อมูลพยากรณ์ล่าสุด
+// 🔹 API ให้ข้อมูลพยากรณ์ล่าสุด
 app.get('/weather', async (req, res) => {
     if (!weatherData || isDataExpired()) {
-        await fetchWeather(); // ดึงข้อมูลใหม่
+        await fetchWeather(); // ✅ ดึงข้อมูลใหม่ถ้าหมดอายุ
     }
     res.json({
         message: "พยากรณ์อากาศ 7 วัน",
@@ -57,10 +62,9 @@ app.get('/weather', async (req, res) => {
     });
 });
 
-// เริ่มเซิร์ฟเวอร์
+// 🔹 เริ่มเซิร์ฟเวอร์
 app.listen(port, () => {
-    console.log(`🌎 Server is running on http://localhost:${port}`);
+    console.log(`🌎 Server is running on port ${port}`);
 }).on("error", (err) => {
     console.error("❌ Server error:", err);
 });
-
