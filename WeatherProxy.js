@@ -15,7 +15,7 @@ app.get('/', (req, res) => {
 // ฟังก์ชันดึงข้อมูลพยากรณ์อากาศของเมืองเดียว
 async function fetchWeather(city) {
     try {
-        const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather`, {
+        const weatherResponse = await axios.get(`https://api.openweathermap.org/data/2.5/weather`, {
             params: {
                 q: city,
                 appid: API_KEY,
@@ -23,11 +23,30 @@ async function fetchWeather(city) {
                 lang: "th"
             }
         });
+        const lat = weatherResponse.data.coord.lat;
+        const lon = weatherResponse.data.coord.lon;
+
+        // ดึงข้อมูลคุณภาพอากาศ (ฝุ่น) ด้วย Air Pollution API
+        const airQualityResponse = await axios.get(`https://api.openweathermap.org/data/2.5/air_pollution`, {
+            params: {
+                lat: lat,
+                lon: lon,
+                appid: API_KEY
+            }
+        });
+
         console.log(`✅ [SUCCESS] ดึงข้อมูลสำเร็จสำหรับ: ${city}`);
-        return { city, ...response.data };
+        
+        // รวมข้อมูลสภาพอากาศและค่าฝุ่น
+        return { 
+            city, 
+            weather: weatherResponse.data,
+            airQuality: airQualityResponse.data.list[0].components 
+        };
+
     } catch (error) {
         console.error(`❌ [ERROR] ดึงข้อมูลล้มเหลวสำหรับ ${city}: ${error.message}`);
-        return { city, error: "ไม่สามารถดึงข้อมูลพยากรณ์อากาศได้" };
+        return { city, error: "ไม่สามารถดึงข้อมูลพยากรณ์อากาศและฝุ่นได้" };
     }
 }
 
@@ -38,7 +57,7 @@ app.get('/weather', async (req, res) => {
     }
 
     const cities = req.query.cities.split(',');
-    console.log(`📌 [REQUEST] รับคำขอพยากรณ์อากาศสำหรับ: ${cities.join(', ')}`);
+    console.log(`📌 [REQUEST] รับคำขอพยากรณ์อากาศและฝุ่นสำหรับ: ${cities.join(', ')}`);
 
     const weatherPromises = cities.map(fetchWeather);
     const weatherData = await Promise.all(weatherPromises);
