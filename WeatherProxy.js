@@ -1,10 +1,10 @@
 const axios = require('axios');
 const express = require('express');
-const cors = require('cors'); 
+const cors = require('cors');
 const app = express();
 
 const port = process.env.PORT || 8080;
-const API_KEY = "9351d1c3e74972058acb0ec6611c40eb"; 
+const API_KEY = "9351d1c3e74972058acb0ec6611c40eb";
 
 app.use(cors());
 
@@ -35,13 +35,16 @@ async function fetchWeather(city) {
             }
         });
 
+        // ตรวจสอบค่าฝุ่นก่อนส่งกลับ
+        const airQuality = airQualityResponse.data.list[0] ? airQualityResponse.data.list[0].components : {};
+
         console.log(`✅ [SUCCESS] ดึงข้อมูลสำเร็จสำหรับ: ${city}`);
-        
+
         // รวมข้อมูลสภาพอากาศและค่าฝุ่น
-        return { 
-            city, 
+        return {
+            city,
             weather: weatherResponse.data,
-            airQuality: airQualityResponse.data.list[0].components 
+            airQuality: airQuality // ส่งข้อมูลฝุ่นที่ตรวจสอบแล้ว
         };
 
     } catch (error) {
