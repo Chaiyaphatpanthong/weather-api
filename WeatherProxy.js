@@ -23,24 +23,31 @@ async function fetchWeather(city) {
                 lang: "th"
             }
         });
-        console.log(`✅ ดึงข้อมูลสำเร็จ: ${city}`);
+        console.log(`✅ [SUCCESS] ดึงข้อมูลสำเร็จสำหรับ: ${city}`);
         return { city, ...response.data };
     } catch (error) {
-        console.error(`❌ ดึงข้อมูลล้มเหลวสำหรับ ${city}:`, error.message);
+        console.error(`❌ [ERROR] ดึงข้อมูลล้มเหลวสำหรับ ${city}: ${error.message}`);
         return { city, error: "ไม่สามารถดึงข้อมูลพยากรณ์อากาศได้" };
     }
 }
 
-// 🔹 เพิ่ม Route `/weather?cities=Chiang Mai,Bangkok,Phuket`
+// 🔹 Route `/weather?cities=Chiang Mai,Bangkok,Phuket`
 app.get('/weather', async (req, res) => {
-    const cities = req.query.cities ? req.query.cities.split(',') : ["Chiang Mai"]; // ค่าเริ่มต้นคือเชียงใหม่
+    if (!req.query.cities) {
+        return res.status(400).json({ error: "กรุณาระบุค่าพารามิเตอร์ cities เช่น /weather?cities=Chiang Mai,Bangkok,Phuket" });
+    }
+
+    const cities = req.query.cities.split(',');
+    console.log(`📌 [REQUEST] รับคำขอพยากรณ์อากาศสำหรับ: ${cities.join(', ')}`);
+
     const weatherPromises = cities.map(fetchWeather);
-    
     const weatherData = await Promise.all(weatherPromises);
+
+    console.log("📦 [RESPONSE] ส่งข้อมูล JSON กลับไปยังลูกค้า");
     res.json(weatherData);
 });
 
 // 🔹 เริ่มเซิร์ฟเวอร์
 app.listen(port, () => {
-    console.log(`🌎 Server is running on port ${port}`);
+    console.log(`🌎 [SERVER] กำลังทำงานบนพอร์ต ${port}`);
 });
