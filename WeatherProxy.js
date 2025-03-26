@@ -24,30 +24,10 @@ async function fetchWeather(city) {
             }
         });
         console.log(`✅ [SUCCESS] ดึงข้อมูลสำเร็จสำหรับ: ${city}`);
-        const { lat, lon } = response.data.coord; // ดึงพิกัดละติจูดและลองจิจูด
-        const airQuality = await fetchAirQuality(lat, lon); // ดึงข้อมูลฝุ่น
-        return { city, ...response.data, airQuality };
+        return { city, ...response.data };
     } catch (error) {
         console.error(`❌ [ERROR] ดึงข้อมูลล้มเหลวสำหรับ ${city}: ${error.message}`);
         return { city, error: "ไม่สามารถดึงข้อมูลพยากรณ์อากาศได้" };
-    }
-}
-
-// ฟังก์ชันดึงข้อมูลฝุ่น
-async function fetchAirQuality(lat, lon) {
-    try {
-        const response = await axios.get(`https://api.openweathermap.org/data/2.5/air_pollution`, {
-            params: {
-                lat: lat,
-                lon: lon,
-                appid: API_KEY
-            }
-        });
-        console.log("✅ [SUCCESS] ดึงข้อมูลฝุ่นสำเร็จ");
-        return response.data.list[0].components; // ข้อมูลฝุ่น (PM2.5, PM10, CO, NO2, ฯลฯ)
-    } catch (error) {
-        console.error(`❌ [ERROR] ดึงข้อมูลฝุ่นล้มเหลว: ${error.message}`);
-        return { error: "ไม่สามารถดึงข้อมูลฝุ่นได้" };
     }
 }
 
