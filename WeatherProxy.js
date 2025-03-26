@@ -8,39 +8,36 @@ const API_KEY = "9351d1c3e74972058acb0ec6611c40eb";
 
 app.use(cors());
 
-// 🔹 เพิ่ม Route สำหรับหน้าแรก
 app.get('/', (req, res) => {
-    res.send('🌤️ API พยากรณ์อากาศพร้อมใช้งาน! ใช้ /weather');
+    res.send('🌤️ API พยากรณ์อากาศพร้อมใช้งาน! ใช้ /weather?cities=Chiang Mai,Bangkok,Phuket');
 });
 
-// ฟังก์ชันดึงข้อมูลพยากรณ์อากาศ
-async function fetchWeather() {
+// ฟังก์ชันดึงข้อมูลพยากรณ์อากาศของเมืองเดียว
+async function fetchWeather(city) {
     try {
         const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather`, {
             params: {
-                q: "Chiang Mai",
+                q: city,
                 appid: API_KEY,
                 units: "metric",
                 lang: "th"
             }
         });
-
-        console.log("✅ ดึงข้อมูลใหม่สำเร็จ:", response.data);
-        return response.data; 
+        console.log(`✅ ดึงข้อมูลสำเร็จ: ${city}`);
+        return { city, ...response.data };
     } catch (error) {
-        console.error("❌ ดึงข้อมูลล้มเหลว:", error.message);
-        return null;
+        console.error(`❌ ดึงข้อมูลล้มเหลวสำหรับ ${city}:`, error.message);
+        return { city, error: "ไม่สามารถดึงข้อมูลพยากรณ์อากาศได้" };
     }
 }
 
-// 🔹 เพิ่ม Route `/weather`
+// 🔹 เพิ่ม Route `/weather?cities=Chiang Mai,Bangkok,Phuket`
 app.get('/weather', async (req, res) => {
-    const weatherData = await fetchWeather();
-    if (weatherData) {
-        res.json(weatherData);
-    } else {
-        res.status(500).json({ error: "ไม่สามารถดึงข้อมูลพยากรณ์อากาศได้" });
-    }
+    const cities = req.query.cities ? req.query.cities.split(',') : ["Chiang Mai"]; // ค่าเริ่มต้นคือเชียงใหม่
+    const weatherPromises = cities.map(fetchWeather);
+    
+    const weatherData = await Promise.all(weatherPromises);
+    res.json(weatherData);
 });
 
 // 🔹 เริ่มเซิร์ฟเวอร์
