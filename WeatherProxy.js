@@ -12,11 +12,11 @@ app.get('/', (req, res) => {
     res.send('🌤️ API พยากรณ์อากาศของเชียงใหม่พร้อมใช้งาน! ใช้ /weather');
 });
 
-// ฟังก์ชันดึงข้อมูลพยากรณ์อากาศของเชียงใหม่เท่านั้น
+// ฟังก์ชันดึงข้อมูลพยากรณ์อากาศของเชียงใหม่
 async function fetchWeather() {
-    const city = "Chiang Mai";  // เมืองเดียวที่ต้องการดึงข้อมูล
+    const city = "Chiang Mai";  
     try {
-        const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather`, {
+        const weatherResponse = await axios.get(`https://api.openweathermap.org/data/2.5/weather`, {
             params: {
                 q: city,
                 appid: API_KEY,
@@ -24,17 +24,39 @@ async function fetchWeather() {
                 lang: "th"
             }
         });
-        console.log(`✅ [SUCCESS] ดึงข้อมูลสำเร็จสำหรับ: ${city}`);
-        return { city, ...response.data };
+
+        const { coord } = weatherResponse.data; // ดึงพิกัดจากข้อมูลพยากรณ์อากาศ
+        console.log(`✅ [SUCCESS] ดึงข้อมูลพยากรณ์อากาศสำเร็จสำหรับ: ${city}`);
+
+        // ดึงข้อมูลค่าฝุ่น PM2.5 โดยใช้พิกัดจาก weather API
+        const airResponse = await axios.get(`https://api.openweathermap.org/data/2.5/air_pollution`, {
+            params: {
+                lat: coord.lat,
+                lon: coord.lon,
+                appid: API_KEY
+            }
+        });
+
+        const pm25 = airResponse.data.list[0].components.pm2_5; // ค่าฝุ่น PM2.5
+        console.log(`✅ [SUCCESS] ดึงข้อมูลค่าฝุ่นสำเร็จ PM2.5 = ${pm25} µg/m³`);
+
+        return { 
+            city, 
+            ...weatherResponse.data, 
+            pm25 
+        };
     } catch (error) {
-        console.error(`❌ [ERROR] ดึงข้อมูลล้มเหลวสำหรับ ${city}: ${error.message}`);
+        console.error(`❌ [ERROR] ดึงข้อมูลล้มเหลว: ${error.message}`);
         return { city, error: "ไม่สามารถดึงข้อมูลพยากรณ์อากาศได้" };
     }
 }
 
-// 🔹 Route `/weather` (ดึงเฉพาะข้อมูลของเชียงใหม่)
+// 🔹 Route `/weather`
 app.get('/weather', async (req, res) => {
-    console.log(`📌 [REQUEST] รับคำขอพยากรณ์อากาศสำหรับเชียงใหม่`);
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+
+    console.log(`📌 [REQUEST] IP: ${ip} | อุปกรณ์: ${userAgent} | รับคำขอพยากรณ์อากาศของเชียงใหม่`);
 
     const weatherData = await fetchWeather();
 
