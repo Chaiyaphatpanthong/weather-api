@@ -9,11 +9,12 @@ const API_KEY = "9351d1c3e74972058acb0ec6611c40eb";
 app.use(cors());
 
 app.get('/', (req, res) => {
-    res.send('🌤️ API พยากรณ์อากาศพร้อมใช้งาน! ใช้ /weather?cities=Chiang Mai');
+    res.send('🌤️ API พยากรณ์อากาศของเชียงใหม่พร้อมใช้งาน! ใช้ /weather');
 });
 
-// ฟังก์ชันดึงข้อมูลพยากรณ์อากาศของเมืองเดียว
-async function fetchWeather(city) {
+// ฟังก์ชันดึงข้อมูลพยากรณ์อากาศของเชียงใหม่เท่านั้น
+async function fetchWeather() {
+    const city = "Chiang Mai";  // เมืองเดียวที่ต้องการดึงข้อมูล
     try {
         const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather`, {
             params: {
@@ -31,17 +32,11 @@ async function fetchWeather(city) {
     }
 }
 
-// 🔹 Route `/weather?cities=Chiang Mai`
+// 🔹 Route `/weather` (ดึงเฉพาะข้อมูลของเชียงใหม่)
 app.get('/weather', async (req, res) => {
-    if (!req.query.cities) {
-        return res.status(400).json({ error: "กรุณาระบุค่าพารามิเตอร์ cities เช่น /weather?cities=Chiang Mai,Bangkok,Phuket" });
-    }
+    console.log(`📌 [REQUEST] รับคำขอพยากรณ์อากาศสำหรับเชียงใหม่`);
 
-    const cities = req.query.cities.split(',');
-    console.log(`📌 [REQUEST] รับคำขอพยากรณ์อากาศสำหรับ: ${cities.join(', ')}`);
-
-    const weatherPromises = cities.map(fetchWeather);
-    const weatherData = await Promise.all(weatherPromises);
+    const weatherData = await fetchWeather();
 
     console.log("📦 [RESPONSE] ส่งข้อมูล JSON กลับไปยังลูกค้า");
     res.json(weatherData);
