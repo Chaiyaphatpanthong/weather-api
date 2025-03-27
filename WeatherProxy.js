@@ -9,7 +9,7 @@ const API_KEY = "9351d1c3e74972058acb0ec6611c40eb";
 app.use(cors());
 
 app.get('/', (req, res) => {
-    res.send('🌤️ API พยากรณ์อากาศพร้อมใช้งาน! ใช้ /weather?cities=Chiang Mai,Bangkok,Phuket');
+    res.send('🌤️ API พยากรณ์อากาศพร้อมใช้งาน! ใช้ /weather?cities=Chiang Mai');
 });
 
 // ฟังก์ชันดึงข้อมูลพยากรณ์อากาศของเมืองเดียว
@@ -31,7 +31,7 @@ async function fetchWeather(city) {
     }
 }
 
-// 🔹 Route `/weather?cities=Chiang Mai,Bangkok,Phuket`
+// 🔹 Route `/weather?cities=Chiang Mai`
 app.get('/weather', async (req, res) => {
     if (!req.query.cities) {
         return res.status(400).json({ error: "กรุณาระบุค่าพารามิเตอร์ cities เช่น /weather?cities=Chiang Mai,Bangkok,Phuket" });
